@@ -1,3 +1,6 @@
+🌐 **Languages:**  
+[🇺🇸 English](README.md) | [🇷🇺 Русский](README.ru.md)
+
 My Telegram channel: https://t.me/doratools_channel
 
 # AbuDabu-pythonObf
@@ -17,4 +20,4 @@ Advanced AST python obfuscator with open source code
 `python AbuDabu_Obf.py`
 
 ## License
-Under the Apache License 2.0. See [LICENSE](https://github.com/Doremii109/SkariorObf-2.0/blob/main/LICENSE) file for more details.
+Under the Apache License 2.0. See [LICENSE](https://github.com/Doremii109/AbuDabu-pythonObf/blob/main/LICENSE) file for more details.
