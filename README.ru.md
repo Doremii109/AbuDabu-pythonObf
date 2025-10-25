@@ -1,3 +1,6 @@
+🌐 **Языки:**  
+[🇺🇸 English](README.md) | [🇷🇺 Русский](README.ru.md)
+
 Мой тгк мабой: https://t.me/doratools_channel
 
 # AbuDabu-pythonObf
@@ -17,4 +20,4 @@
 `python AbuDabu_Obf.py`
 
 ## Лицензия
-Под лицензией MIT. Более подробную информацию смотрите в файле [ЛИЦЕНЗИЯ](https://github.com/Doremii109/SkariorObf-2.0/blob/main/LICENSE).
+Под Apache License 2.0. Более подробную информацию смотрите в файле [ЛИЦЕНЗИЯ](https://github.com/Doremii109/AbuDabu-pythonObf/blob/main/LICENSE).
