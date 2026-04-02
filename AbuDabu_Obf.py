@@ -3,69 +3,38 @@ import random
 from typing import Union
 
 class JSF(ast.NodeTransformer):
-
-    _str = 'str'
-    _repr = 'repr'
-    _ascii = 'ascii'
-    _format = 'format'
-
-    def _is_str_node(self, node: ast.AST) -> bool: return isinstance(node, ast.Constant) and isinstance(node.value, str)
-
-    def _build_safe_concatenation(self, p: list[ast.AST]) -> ast.AST:
-        if not p: return ast.Constant(value='')
-        if len(p) == 1: return p[0]
-
-        l_node: ast.List = ast.List(elts=p, ctx=ast.Load())
-
-        return ast.Call(func=ast.Name(id="''.join", ctx=ast.Load()), args=[l_node], keywords=[])
-
-    def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.AST:
-        p: list = []
-        for value in node.values:
-            if isinstance(value, ast.Constant): p.append(ast.Constant(value=value.value))
-            elif isinstance(value, ast.FormattedValue): p.append(self._convert_formatted_value(value))
-            else:
-                tr = self.visit(value)
-
-                if not self._is_str_node(tr):
-                    tr: ast.Call = ast.Call(func=ast.Name(id=self._str, ctx=ast.Load()), args=[tr], keywords=[])
-
-                p.append(tr)
-        return self._build_safe_concatenation(p)
-
-    def _convert_formatted_value(self, node: ast.FormattedValue) -> ast.AST:
-        v_node = self.visit(node.value)
-
-        # if node.conversion == 114:
-        #     value_node = ast.Call(
-        #         func=ast.Name(id=self._repr, ctx=ast.Load()),
-        #         args=[value_node],
-        #         keywords=[]
-        #     )
-        # elif node.conversion == 115:
-        #     value_node = ast.Call(
-        #         func=ast.Name(id=self._str, ctx=ast.Load()),
-        #         args=[value_node],
-        #         keywords=[]
-        #     )
-        # elif node.conversion == 97:
-        #     value_node = ast.Call(
-        #         func=ast.Name(id=self._ascii, ctx=ast.Load()),
-        #         args=[value_node],
-        #         keywords=[]
-        #     )
-
-        if node.format_spec:
-            fs_node = self.visit(node.format_spec)
-
-            if not self._is_str_node(fs_node):
-                fs_node = ast.Call(func=ast.Name(id=self._str, ctx=ast.Load()), args=[fs_node], keywords=[])
-
-            return ast.Call(func=ast.Name(id=self._format, ctx=ast.Load()), args=[v_node, fs_node], keywords=[])
+    def FormattedValue(self, node: ast.FormattedValue):
+        if isinstance((nv:=node.value), ast.Constant):
+            val = repr(unp_val:=nv.value) if isinstance(unp_val, str) else str(unp_val)
         else:
-            return ast.Call(func=ast.Name(id=self._str, ctx=ast.Load()), args=[v_node], keywords=[])
+            val = ast.unparse(nv)
 
-def genrn() -> str: return f'_x{random.randint(1000, 10000)}{random.randint(1000, 10000)}x_'
+        cv = ''
+        if (c_version := node.conversion) and c_version != -1:
+            _cv = {97: 'ascii', 114: 'repr', 115: 'str'}
+            cv = _cv.get(c_version, '')
+
+        if (frmt_sp := node.format_spec):
+            f_str = ast.unparse(frmt_sp).strip("'\"")
+            return f'format({cv}({val}) if "{cv}" else {val}, "{f_str}")'
+        
+        return f'{cv}({val})' if cv else f'str({val})'
+
+    def visit_JoinedStr(self, node):
+        self.generic_visit(node)
+        js_l = []
+        for _node in node.values:
+            if isinstance(_node, ast.FormattedValue):
+                js_l.append(self.FormattedValue(_node))
+
+            if isinstance(_node, ast.Constant):
+                js_l.append(repr(str(_node.value)))
+        return ast.parse(f'str().join([{", ".join(js_l)}])').body[0].value
+
+np=0
+def genrn() -> str:
+    global np
+    return '_0x'+str(abs(hash(str(np:=np+1))))
 
 rns: list[str] = [
     genrn(),
