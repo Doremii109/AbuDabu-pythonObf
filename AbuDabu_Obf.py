@@ -2,34 +2,22 @@ import ast
 import random
 from typing import Union
 
-class JSF(ast.NodeTransformer):
-    def FormattedValue(self, node: ast.FormattedValue):
-        if isinstance((nv:=node.value), ast.Constant):
-            val = repr(unp_val:=nv.value) if isinstance(unp_val, str) else str(unp_val)
-        else:
-            val = ast.unparse(nv)
-
-        cv = ''
-        if (c_version := node.conversion) and c_version != -1:
-            _cv = {97: 'ascii', 114: 'repr', 115: 'str'}
-            cv = _cv.get(c_version, '')
-
-        if (frmt_sp := node.format_spec):
-            f_str = ast.unparse(frmt_sp).strip("'\"")
-            return f'format({cv}({val}) if "{cv}" else {val}, "{f_str}")'
-        
-        return f'{cv}({val})' if cv else f'str({val})'
-
+class FStr(ast.NodeTransformer):
+    def form_val(self, node: ast.FormattedValue):
+        _cv = {97: 'ascii', 114: 'repr', 115: 'str', -1: 'str'}
+        cv = _cv[node.conversion]
+        if (frmt_sp:=node.format_spec):
+            return f'format({cv}({ast.unparse(node.value)}), "{ast.unparse(frmt_sp)}")'
+        return f'{cv}({ast.unparse(node.value)})'
     def visit_JoinedStr(self, node):
         self.generic_visit(node)
         js_l = []
         for _node in node.values:
             if isinstance(_node, ast.FormattedValue):
-                js_l.append(self.FormattedValue(_node))
-
-            if isinstance(_node, ast.Constant):
-                js_l.append(repr(str(_node.value)))
-        return ast.parse(f'str().join([{", ".join(js_l)}])').body[0].value
+                js_l.append(self.form_val(_node))
+            elif isinstance(_node, ast.Constant):
+                js_l.append(repr(_node.value))
+        return ast.parse(f'str().join([{','.join(js_l)}])').body[0].value
 
 np=0
 def genrn() -> str:
