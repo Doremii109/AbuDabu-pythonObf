@@ -217,7 +217,7 @@ print(banner)
 __file__: str = input('Enter file: ')
 tree: ast.Module = ast.parse(open(__file__, 'r', encoding='utf8', errors='ignore').read())
 
-_code: ast.Module = JSF().visit(tree)
+_code: ast.Module = FStr().visit(tree)
 co: CO = CO()
 _code: ast.Module = co.cCD(co.visit(_code))
 _code: str = ast.unparse(strObf().visit(_code))
